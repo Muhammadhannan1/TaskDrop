@@ -16,17 +16,15 @@ import { ConfigModule } from '@nestjs/config';
 import { RedisCoreModule } from './redis-core/redis-core.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationsModule } from './notifications/notifications.module';
-import { ChatModule } from './chat/chat.module';
 import { MediaModule } from './media/media.module';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
-import OAuthModule from './oauth/oauth.module';
 import { TokenModule } from './token/token.module';
 import { HttpLoggerMiddleware } from 'utils/middlewares/http-loger.middleware';
 import { SanitizationMiddleware } from 'utils/middlewares/sanitization.middleware';
 import { seconds, ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import CronModule from './cron/cron.module';
-import { PaymentModule } from './payment/payment.module';
+import { ProjectModule } from './project/project.module';
+import { TaskModule } from './task/task.module';
 import WinstonLoggerService from 'utils/middlewares/logger.middleware';
 
 @Module({
@@ -50,15 +48,13 @@ import WinstonLoggerService from 'utils/middlewares/logger.middleware';
     MongooseModule.forRoot(process.env.DATABASE_URL),
     // RedisCoreModule,
     // HttpModule,
-    // OAuthModule,
     // NotificationsModule,
-    // ChatModule,
     // MediaModule,
     UserModule,
     // TokenModule,
     AuthModule,
-    // CronModule,
-    // PaymentModule,
+    ProjectModule,
+    TaskModule,
   ],
   controllers: [AppController],
   providers: [

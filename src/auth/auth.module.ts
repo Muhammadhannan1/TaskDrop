@@ -8,7 +8,6 @@ import { RedisCoreService } from 'src/redis-core/redis-core.service';
 // import { TokenService } from 'src/token/token.service';
 import { TokenModule } from 'src/token/token.module';
 import { UserModule } from 'src/user/user.module';
-import OAuthModule from 'src/oauth/oauth.module';
 @Module({
   imports: [
     JwtModule.registerAsync({
@@ -20,9 +19,8 @@ import OAuthModule from 'src/oauth/oauth.module';
     UserModule,
     RedisModule,
     TokenModule,
-    OAuthModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, RedisCoreService],
 })
-export class AuthModule {}
+export class AuthModule { }
