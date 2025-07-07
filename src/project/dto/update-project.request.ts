@@ -15,7 +15,6 @@ export class UpdateProjectDto {
     @ApiPropertyOptional()
     @IsArray()
     @ArrayUnique()
-    @IsMongoId({ each: true })
     @IsOptional()
     members?: string[];
 }

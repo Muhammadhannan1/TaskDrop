@@ -9,16 +9,16 @@ export class Task extends Document {
   @Prop({ trim: true })
   description: string;
 
-  @Prop({ enum: ['Low', 'Medium', 'High'], default: 'Medium' })
+  @Prop({ enum: ['low', 'medium', 'high'], default: 'medium' })
   priority: string;
 
   @Prop({ type: Types.ObjectId, ref: 'Project', required: true })
   projectId: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  assignedTo: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  assignedTo?: Types.ObjectId;
 
-  @Prop({ enum: ['To Do', 'In Progress', 'Done'], default: 'To Do' })
+  @Prop({ enum: ['todo', 'in_progress', 'done'], default: 'todo' })
   status: string;
 }
 

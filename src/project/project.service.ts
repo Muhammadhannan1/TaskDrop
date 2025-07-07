@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Project } from './schema/project.schema';
@@ -12,31 +12,58 @@ import { addUserDto } from './dto/addUser.request';
 export class ProjectService {
     constructor(
         @InjectModel(Project.name) private readonly projectModel: Model<Project>,
-        @Inject(UserService) private userService: UserService,
+        @Inject(forwardRef(() => UserService)) private userService: UserService,
     ) { }
 
     async create(payload: CreateProjectDto) {
-
-        for (const memberId of payload.members) {
-            const memberExist = await this.userService.findOne({ _id: new ObjectId(memberId) })
+        const memberObjectIds = [];
+        for (const memberEmail of payload.members) {
+            const memberExist = await this.userService.findOne({ email: memberEmail })
             if (!memberExist) {
-                throw new NotFoundException('Member does not exist')
+                throw new NotFoundException(`Member with email ${memberEmail} does not exist`)
             }
+            memberObjectIds.push(memberExist._id);
         }
-        const data = await this.projectModel.create(payload);
+        
+        const projectData = {
+            ...payload,
+            createdBy: new ObjectId(payload.createdBy),
+            members: memberObjectIds
+        };
+        
+        const data = await this.projectModel.create(projectData);
         return { status: true, message: 'Project Created', data }
     }
     async list(userId: string) {
         if (!ObjectId.isValid(userId)) {
             throw new BadRequestException('Invalid userId')
         }
-        const data = await this.projectModel.find({
+
+        const objectId = new ObjectId(userId);
+        const projects = await this.projectModel.find({
             $or: [
-                { members: userId },
-                { createdBy: userId }
+                { members: objectId },
+                { createdBy: objectId }
             ]
-        });
-        return { status: true, message: 'Project listing', data };
+        }).populate('members');
+        
+        const projectsWithTasks = await Promise.all(
+            projects.map(async (project) => {
+                if (project.tasks && project.tasks.length > 0) {
+                    const taskIds = project.tasks.map(taskId => new ObjectId(taskId));
+                    const tasks = await this.projectModel.db.collection('tasks').find({
+                        _id: { $in: taskIds }
+                    }).toArray();
+                    return {
+                        ...project.toObject(),
+                        tasks: tasks
+                    };
+                }
+                return project.toObject();
+            })
+        );
+        
+        return { status: true, message: 'Project listing', data: projectsWithTasks };
     }
 
 
@@ -54,15 +81,20 @@ export class ProjectService {
         if (!ownerId.equals(userId)) {
             throw new BadRequestException('Only owner of this project is able to edit');
         }
+        
+        // Convert member emails to ObjectIds if members are provided
         if (payload.members) {
-            for (const memberId of payload.members) {
-                const member = await this.userService.findOne({ _id: new ObjectId(memberId) });
+            const memberObjectIds = [];
+            for (const memberEmail of payload.members) {
+                const member = await this.userService.findOne({ email: memberEmail });
                 if (!member) {
-                    throw new NotFoundException(`Member with ID ${memberId} does not exist`);
+                    throw new NotFoundException(`Member with email ${memberEmail} does not exist`);
                 }
+                memberObjectIds.push(member._id);
             }
+            payload.members = memberObjectIds;
         }
-        console.log(payload)
+
         const data = await this.projectModel.findOneAndUpdate({ _id: projectId }, { $set: payload }, { returnDocument: 'after' });
 
         return { status: true, message: 'Project updated', data };
@@ -83,6 +115,53 @@ export class ProjectService {
         }
         await this.projectModel.findByIdAndDelete(projectId)
         return { status: true, message: 'Project deleted', data: null };
+    }
+
+    async getProjectById(projectId: string, userId: string) {
+        if (!ObjectId.isValid(projectId)) {
+            throw new BadRequestException('Invalid project ID');
+        }
+        const objectId = new ObjectId(userId);
+        const project = await this.projectModel.findOne({
+            _id: new ObjectId(projectId),
+            $or: [
+                { members: objectId },
+                { createdBy: objectId }
+            ]
+        }).populate('members', 'name email _id');
+        
+        if (!project) {
+            return null;
+        }
+        
+        // Manually populate tasks
+        if (project.tasks && project.tasks.length > 0) {
+            const taskIds = project.tasks.map(taskId => new ObjectId(taskId));
+            const tasks = await this.projectModel.db.collection('tasks').find({
+                _id: { $in: taskIds }
+            }).toArray();
+            
+            return {
+                ...project.toObject(),
+                tasks: tasks
+            };
+        }
+        
+        return project.toObject();
+    }
+
+    async addTaskToProject(projectId: string, taskId: string) {
+        await this.projectModel.updateOne(
+            { _id: new ObjectId(projectId) },
+            { $addToSet: { tasks: new ObjectId(taskId) } }
+        );
+    }
+
+    async removeTaskFromProject(projectId: string, taskId: string) {
+        await this.projectModel.updateOne(
+            { _id: new ObjectId(projectId) },
+            { $pull: { tasks: new ObjectId(taskId) } }
+        );
     }
 
     // async addUser(userId: string, payload: addUserDto) {

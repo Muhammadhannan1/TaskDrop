@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { UserController } from './user.controller';
 import { UserService } from './user.service';
 import { RedisModule } from 'nestjs-redis';
@@ -9,6 +9,8 @@ import { MediaModule } from 'src/media/media.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './schema/user.schema';
 import { RedisCoreService } from 'src/redis-core/redis-core.service';
+import { ProjectModule } from 'src/project/project.module';
+import { ProjectService } from 'src/project/project.service';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { RedisCoreService } from 'src/redis-core/redis-core.service';
     MediaModule,
     RedisModule,
     TokenModule,
+    forwardRef(() => ProjectModule),
   ],
   controllers: [UserController],
   providers: [UserService, RedisCoreService],

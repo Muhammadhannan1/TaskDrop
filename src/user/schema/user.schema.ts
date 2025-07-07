@@ -26,6 +26,9 @@ export class User extends Document {
   })
   avatar: string;
 
+  @Prop({ default: [], ref: 'Project', type: [Types.ObjectId] })
+  projects: ObjectId[];
+
   @Prop({ default: () => new Date() })
   createdAt: Date;
 

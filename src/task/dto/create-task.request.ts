@@ -5,6 +5,11 @@ export class CreateTaskDto {
     @ApiProperty()
     @IsNotEmpty()
     @IsString()
+    userId: string;
+
+    @ApiProperty()
+    @IsNotEmpty()
+    @IsString()
     title: string;
 
     @ApiPropertyOptional()
@@ -13,12 +18,10 @@ export class CreateTaskDto {
     description?: string;
 
     @ApiProperty()
-
-    @IsIn(['Low', 'Medium', 'High'])
+    @IsIn(['low', 'medium', 'high'])
     @IsNotEmpty()
     @IsString()
     priority: string;
-
 
     @ApiProperty()
     @IsMongoId()
@@ -26,17 +29,15 @@ export class CreateTaskDto {
     @IsString()
     projectId: string;
 
-
-    @ApiProperty()
+    @ApiPropertyOptional()
+    @IsOptional()
     @IsMongoId()
     @IsString()
-    @IsNotEmpty()
-    assignedTo: string;
+    assignedTo?: string;
 
     @ApiProperty()
-
     @IsNotEmpty()
-    @IsIn(['To Do', 'In Progress', 'Done'])
+    @IsIn(['todo', 'in_progress', 'done'])
     @IsString()
     status: string;
 }

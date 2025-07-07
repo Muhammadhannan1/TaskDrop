@@ -5,6 +5,7 @@ import {
   HttpStatus,
   BadRequestException,
   NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from './schema/user.schema';
@@ -20,6 +21,7 @@ import { ObjectId } from 'mongodb';
 import { ChangePasswordDTO } from './dto/changePassword.request';
 import { ResendOTPDTO } from './dto/resendOTP.request';
 import { UpdateProfileDTO } from './dto/updateProfile.request';
+import { ProjectService } from 'src/project/project.service';
 
 /**
  * @NOTE : These are all the basic implementation of all mandatory required functionalities
@@ -32,10 +34,22 @@ export class UserService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @Inject(TokenService) private tokenService: TokenService,
     @Inject(MediaService) private mediaService: MediaService,
+    @Inject(forwardRef(() => ProjectService)) private projectService: ProjectService,
   ) {}
 
   async create(payload: any) {
-    return await this.userModel.create(payload);
+    const user = await this.userModel.create(payload);
+
+    const project = await this.projectService.create({
+      name: "My First Project",
+      description: 'This is my first project',
+      members: [],
+      createdBy: user._id as unknown as string,
+    })
+
+    user.projects.push(project.data._id as unknown as ObjectId);
+    await user.save();
+    return user;
   }
   async getMe(userId:string){
       if(!ObjectId.isValid(userId)){
@@ -79,8 +93,7 @@ export class UserService {
         { returnDocument: 'after' },
       )
       .exec();
-    // console.log(updatedProfile)
-    delete updatedProfile.password;
+      delete updatedProfile.password;
     return {
       status: true,
       message: 'Profile Updated Successfully',

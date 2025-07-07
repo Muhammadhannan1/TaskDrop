@@ -14,10 +14,20 @@ export class ProjectController {
         return this.projectService.create(dto);
     }
 
-    @Get()
+    @Get('/user/:userId')
     @UseGuards(JwtAuthGuard)
-    async list(@Req() req: any) {
-        return await this.projectService.list(req.user_details.userId);
+    async list(@Param('userId') userId: string) {
+        return await this.projectService.list(userId);
+    }
+
+    @Get('/:projectId')
+    @UseGuards(JwtAuthGuard)
+    async getProject(@Param('projectId') projectId: string, @Req() req: any) {
+        const project = await this.projectService.getProjectById(projectId, req.user_details.userId);
+        if (!project) {
+            throw new NotFoundException('Project not found');
+        }
+        return { status: true, message: 'Project retrieved successfully', data: project };
     }
 
     @Patch('/:projectId')

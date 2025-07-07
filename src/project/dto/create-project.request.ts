@@ -14,15 +14,13 @@ export class CreateProjectDto {
 
 
     @ApiProperty()
-    @IsMongoId()
     @IsNotEmpty()
-    @IsString()
+    @IsMongoId()
     createdBy: string;
 
     @ApiProperty()
     @IsArray()
     @ArrayUnique()
     @ArrayNotEmpty()
-    @IsMongoId({ each: true })
     members: string[];
 }
