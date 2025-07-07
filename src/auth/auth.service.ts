@@ -14,7 +14,6 @@ import { CreateUserDTO } from './dto/signup.request';
 import { UserLoginDTO } from './dto/login.request';
 import { VerifyUserDTO } from './dto/verify.request';
 import { OtpTypes } from 'utils/Enums/auth/otp';
-import OAuthService from 'src/oauth/oauth.service';
 import { UserType } from 'utils/Enums/user/types';
 
 @Injectable()
@@ -24,7 +23,6 @@ export class AuthService {
     @Inject(JwtService) private jwtService: JwtService,
     // @Inject(RedisCoreService) private redisService: RedisCoreService,
     @Inject(TokenService) private tokenService: TokenService,
-    @Inject(OAuthService) private oAuthService: OAuthService,
   ) {}
 
   async createUser(payload: CreateUserDTO) {
@@ -86,7 +84,9 @@ export class AuthService {
     if (!compareSync(payload.password, user.password)) {
       throw new BadRequestException('Email or password is incorrect');
     }
-
+    // if (!user.verified) {
+    //   throw new BadRequestException('User Not Verified');
+    // }
     let temp: any = { ...user };
 
     temp = { ...temp._doc };
@@ -111,7 +111,7 @@ export class AuthService {
       userId: payload._id,
       userType: payload.type,
       verified: payload.verified,
-    });
+    },{expiresIn:604800});
   }
 
   private async caching(doc: any, envVariable: any, email: any) {
