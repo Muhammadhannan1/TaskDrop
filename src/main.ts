@@ -14,10 +14,25 @@ async function bootstrap() {
   // });
   const app = await NestFactory.create(AppModule)
 
+  // Enable CORS
+  app.enableCors({
+    origin: [ 
+      'http://localhost:5173', // Vite default
+      ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Origin',
+      'X-Requested-With',
+      'Content-Type',
+      'Accept',
+      'Authorization',
+      'X-API-Key',
+    ]
+  });
+
   // app.useWebSocketAdapter(new IoAdapter(app));
 
   // adapter.set('trust proxy', 1); // Trust the first proxy
-
 
   const globalPrefix = 'api/v1';
 

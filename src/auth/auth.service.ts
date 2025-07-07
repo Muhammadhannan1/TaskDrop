@@ -86,9 +86,7 @@ export class AuthService {
     if (!compareSync(payload.password, user.password)) {
       throw new BadRequestException('Email or password is incorrect');
     }
-    if (!user.verified) {
-      throw new BadRequestException('User Not Verified');
-    }
+
     let temp: any = { ...user };
 
     temp = { ...temp._doc };
@@ -122,7 +120,7 @@ export class AuthService {
     // const cacheKey = `${envVariable}${email}:${token}`;
     // const cacheKey = `${envVariable}${email}:authToken`;
     // await this.redisService.set(cacheKey, doc, 'EX', 604800); // 86400 ---> 1 day, 604800 ---> 1 week
-    let data: any = { accessToken: token };
+    let data: any = { accessToken: token, user: doc };
     return {
       status: true,
       message: 'Success',

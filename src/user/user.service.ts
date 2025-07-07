@@ -56,7 +56,6 @@ export class UserService {
     const userUpdatePayload: any = {
       _id: user._id,
       email: user.email,
-      verified: user.verified,
       password: user.password,
       type: user.type,
       createdAt: user.createdAt,

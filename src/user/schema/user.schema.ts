@@ -10,11 +10,8 @@ export class User extends Document {
   @Prop()
   name: string;
 
-  @Prop({ index: { unique: true, sparse: true } })
+  @Prop({ index: { unique: true, sparse: true }, required: true })
   email: string;
-
-  @Prop({ default: false })
-  verified: boolean;
 
   @Prop()
   password: string;
@@ -22,8 +19,12 @@ export class User extends Document {
   @Prop()
   type: string;
 
-  @Prop()
-  profilePic: string;
+  @Prop({ 
+    default: function() {
+      return `https://api.dicebear.com/7.x/avataaars/svg?seed=${this.email || 'default'}`;
+    }
+  })
+  avatar: string;
 
   @Prop({ default: () => new Date() })
   createdAt: Date;
